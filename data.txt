@@ -1,0 +1,5 @@
+req.body.photoBase64
+  var filename = "path/imagexdxd.jpg"
+
+
+FUNCITONS  ANTIGUA POST/  post
