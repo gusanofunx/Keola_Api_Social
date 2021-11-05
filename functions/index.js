@@ -44,6 +44,7 @@ app.get('/hello_world', (req, res) => {
 
 
 
+// GET ALL  POSTS  ********************************************* photoBase64
 app.get("/socialApi/posts", async (req, res) => {
 
   const col = db.collection('social_posts')
@@ -76,9 +77,6 @@ fs = require('fs');
 app.post("/socialApi/post", async (req, res) => {
 
   const hash_name_image = crypto.randomBytes(8).toString('hex') + '.jpg'
-
-
-
 
   console.log("--resp    wirte  okokok 2 2222")
 
@@ -146,26 +144,70 @@ app.post("/socialApi/post", async (req, res) => {
 })
 
 
-// UPDATE POST ****************************************************************O
-// app.put("/socialApi/post_reaction", async (req, res) => {
-//   try {
-//     const doc = db.collection("social_posts").doc(req.body.id_post);
-//     doc.update({
-//       total_reactions: admin.firestore.FieldValue.increment(1),
+// UPDATE REACTION POST  ****************************************************************O
+app.put("/socialApi/post_reaction", async (req, res) => {
+  try {
+    const doc = db.collection("social_posts").doc(req.body.id_post);
+    doc.update({
+      total_reactions: admin.firestore.FieldValue.increment(1),
+      [req.body.type_reaction]: admin.firestore.FieldValue.increment(1),
+      last_reacter_id: req.body.idUser
+    })
+    return res.json({ msg: `todo ok ---> ${req.body.id_post}` });
+  } catch (error) {
+    console.log("ERROR  JOSH ", error)
+    return res.status(500).send(error);
+  }
+})
 
-// [req.body.type_reaction+ ""]:admin.firestore.FieldValue.increment(1),
+// UPDATE REACTION POST  ****************************************************************O
+app.post("/socialApi/post_comment", async (req, res) => {
+    const noww = Math.floor(Date.now() / 1000)
+  try {
+    const doc = db.collection("social_comments").doc()
+    doc.create({
+      idUser: req.body.idUser,
+      comment: req.body.comment,
+      img_user: req.body.img_user,
+      name_user: req.body.name_user,
+      id_post: req.body.id_post,
+updateDate: noww
 
+    })
+    console.log("obj -- >", doc.id)
+    return res.json({ msg: ` comment ok ---> ${doc.id}` });
 
+  } catch (error) {
+    console.log("ERROR  JOSH ", error)
+    return res.status(500).send(error);
+  }
+})
+// GET ALL COMMENTS POST ****************************************************************O
 
-//     })
-//     return res.json({ msg: `todo ok ---> ${req.body.id_post}` });
+app.get("/socialApi/post_comments/:id_post", async (req, res) => {
+  try {
+    const col = db.collection("social_comments")
+    const querysnap = await col.where("id_post", "==", req.params.id_post).get()
+    const docs2 = querysnap.docs
+    // const docs = await  db.collection("social_comments").where("id_post" ,"==" ,req.params.id_post).get().docs
+    const response = docs2.map(item => ({
+      id: item.id,
+      ...item.data()
 
+    }))
 
-//   } catch (error) {
-//     console.log("ERROR  JOSH ", error)
-//     return res.status(500).send(error);
-//   }
-// })
+const resp = response.sort( function(a,b){
+
+return b?.updateDate - a?.updateDate 
+})
+
+    return res.status(200).json({ objModel: resp });
+
+  } catch (error) {
+    console.log("ERROR  JOSH ", error)
+    return res.status(500).send(error);
+  }
+})
 
 
 
